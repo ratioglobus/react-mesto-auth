@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { React, useState, useEffect, useRef } from 'react';
 import { CurrentUserContext } from '../contexts/CurrentUserContext';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import avatar from '../images/potter.jpg';
 import api from './../utils/api';
-import Header from './Header';
+import authApi from '../utils/authApi';
+
 import Main from './Main';
 import Footer from './Footer';
 import PopupWithImage from './PopupWithImage';
@@ -13,6 +15,11 @@ import AddPlacePopup from './AddPlacePopup';
 import DeleteConfirmPopup from './DeleteConfirmPopup';
 import HandleEscClose from './HandleEscClose';
 import HandleOverlayClose from './HandleOverlayClose';
+import ProtectedRoute from './ProtectedRoute';
+import Register from './Register';
+import Login from './Login';
+import InfoTooltip from './InfoTooltip';
+import GoTop from './GoTop';
 
 
 function App() {
@@ -26,6 +33,34 @@ function App() {
   const [currentUser, setCurrentUser] = useState({name: '...', about: '...', avatar: avatar});
   const [cards, setCards] = useState([]);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [status, setStatus] = useState({ message: '', status: false });
+  const [infoTooltipIsOpen, setInfoTooltipIsOpen] = useState(false);
+  const [scrollPosition, setSrollPosition] = useState(0);
+  const [showGoTop, setshowGoTop] = useState("goTopHidden");
+  const navigate = useNavigate();
+  const refScrollUp = useRef();
+
+
+  useEffect(() => {
+    if (localStorage.getItem('jwt')) {
+      const token = localStorage.getItem('jwt')
+      auth(token)
+    }
+  }, []);
+
+  function auth(token) {
+    authApi.getInfo(token)
+      .then(() => {
+        localStorage.setItem('loggedIn', JSON.stringify(true))
+        navigate('/react-mesto-auth')
+        setLoggedIn(true)
+      })
+      .catch(() => {
+        localStorage.setItem('loggedIn', JSON.stringify(false))
+      })
+  };
   
   useEffect(() => {
     Promise.all([api.getUserData(), api.getInitialCards()])
@@ -35,6 +70,88 @@ function App() {
       })
       .catch(err => console.log(err));
   }, []);
+
+  function handleRegister({ email, password }) {
+    setIsLoading(true)
+
+    return authApi.register(email, password)
+      .then(() => {
+        setStatus({ message: 'Вы успешно зарегистрировались!', status: true })
+        navigate('/react-mesto-auth/sign-in')
+      })
+      .catch(() => {
+        setStatus({
+          message: 'Что-то пошло не так! Попробуйте ещё раз.',
+          status: false
+        })
+      })
+      .finally(() => {
+        setInfoTooltipIsOpen(true)
+        setIsLoading(false)
+      })
+  };
+
+  function handleLogin({ email, password }) {
+    localStorage.setItem('email', email)
+    setIsLoading(true)
+
+    return authApi.authorize(email, password)
+      .then(res => {
+        if (res.token) {
+          setLoggedIn(true)
+          localStorage.setItem('jwt', res.token)
+          localStorage.setItem('loggedIn', JSON.stringify(true))
+          navigate('/react-mesto-auth')
+        }
+      })
+      .catch(() => {
+        setInfoTooltipIsOpen(true)
+        setStatus({
+          message: 'Неверный логин или пароль',
+          status: false
+        })
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+  };
+
+  function onLogOut() {
+    localStorage.clear()
+    setLoggedIn(false)
+  };
+
+  useEffect(() => {
+    if (loggedIn) {
+      Promise.all([api.getUserData(), api.getInitialCards()])
+        .then(([person, cards]) => {
+          setCurrentUser(person)
+          setCards(cards)
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    }
+  }, [loggedIn]);
+
+  const handleVisibleButton = () => {
+    const position = window.scrollY;
+    setSrollPosition(position);
+
+    if (scrollPosition > 50) {
+      return setshowGoTop("goTop");
+    } else if (scrollPosition < 50) {
+      return setshowGoTop("goTopHidden");
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleVisibleButton);
+  });
+
+  const handleScrollUp = () => {
+    refScrollUp.current.scrollIntoView({ behavior: "smooth" });
+  };
 
   function handleCardLike(card) {
     const isLiked = card.likes.some(i => i._id === currentUser._id);
@@ -104,6 +221,7 @@ function App() {
     setisEditAvatarPopupOpen(false);
     setisImagePopupOpen(false);
     setIsDeleteConfirmPopupOpen(false);
+    setInfoTooltipIsOpen(false)
   };
 
   HandleOverlayClose(closeAllPopups);
@@ -113,17 +231,50 @@ function App() {
   return (
     <CurrentUserContext.Provider value={currentUser}>
 
-      <Header/>
-      <Main
-        cards={cards}
-        onEditAvatar={handleEditAvatarClick}
-        onEditProfile={handleEditProfileClick}
-        onAddPlace={handleAddPlaceClick}
-        onCardClick={handleCardClick}
-        onCardLike={handleCardLike}
-        onCardDelete={handleCardDeleteClick}/>
-      <Footer/>
+      <Routes>
+          <Route path='/react-mesto-auth/sign-up'
+            element={
+              <Register onRegister={handleRegister} isLoading={isLoading} />
+            }
+          />
 
+          <Route path='/react-mesto-auth/sign-in'
+            element={<Login onLogin={handleLogin} isLoading={isLoading} />}
+          />
+
+          <Route path='/react-mesto-auth'
+            element={
+              <ProtectedRoute loggedIn={loggedIn}>
+                <div ref={refScrollUp}> </div>
+                <Main
+                  onEditAvatar={handleEditAvatarClick}
+                  onEditProfile={handleEditProfileClick}
+                  onAddPlace={handleAddPlaceClick}
+                  onCardClick={handleCardClick}
+                  onCardLike={handleCardLike}
+                  onCardDelete={handleCardDeleteClick}
+                  cards={cards}
+                  onLogOut={onLogOut}
+                  email={localStorage.getItem('email')}
+                />
+                <GoTop showGoTop={showGoTop} scrollUp={handleScrollUp} />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path='*'
+            element={
+              loggedIn ? (
+                <Navigate to='/react-mesto-auth' />
+              ) : (
+                <Navigate to='/react-mesto-auth/sign-in' />
+              )
+            }
+          />
+      </Routes>
+
+      {loggedIn && <Footer />}
+      
       <EditAvatarPopup isOpen={isEditAvatarPopupOpen} onClose={closeAllPopups} onUpdateAvatar={handleUpdateAvatar}/> 
 
       <EditProfilePopup isOpen={isEditProfilePopupOpen} onClose={closeAllPopups} onUpdateUser={handleUpdateUser}/>
@@ -134,7 +285,9 @@ function App() {
 
       <PopupWithImage isOpen={isImagePopupOpen} onClose={closeAllPopups} card={selectedCard}/>
 
-    </CurrentUserContext.Provider>
+      <InfoTooltip isOpen={infoTooltipIsOpen} onClose={closeAllPopups} status={status} />
+
+  </CurrentUserContext.Provider>
   )
 };
 

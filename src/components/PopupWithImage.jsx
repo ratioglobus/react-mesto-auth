@@ -10,4 +10,4 @@ export default function PopupWithImage({ isOpen, card, onClose }) {
         </div>
       </div>
     );
-  }
+}

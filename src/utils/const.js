@@ -1,4 +1,4 @@
-export const CONFIG = {
+const CONFIG = {
   formSelector: '.popup__form',
   inputSelector: '.popup__input',
   elementsSelector: '.elements',
@@ -11,7 +11,6 @@ export const CONFIG = {
   popupProfileSelector: '.popup-profile',
   inactiveButtonClass: 'popup__save-button_disabled',
   activeButtonClass: 'popup__save-button',
-  inputErrorClass: 'popup__input_type_error',
   errorClass: 'popup__error_visible',
   templateSelector: '#template-elements',
   popupConfirmSelector: '.popup-deleteConfirm',
@@ -23,5 +22,13 @@ export const CONFIG = {
       authorization: '95644a66-d73f-4c68-b73b-d19d376bbf1f',
       'Content-Type': 'application/json',
     }
-  }
+  },
+  authApiConfig: {
+    url: 'https://auth.nomoreparties.co',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  },
 };
+
+export { CONFIG };

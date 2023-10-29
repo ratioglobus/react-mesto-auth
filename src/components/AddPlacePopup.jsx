@@ -32,8 +32,8 @@ export default function AddPlacePopup({ isOpen, onClose, onAddPlace }) {
         maxLength={30}
         autoComplete="off"
         required=""
-        value={namenewimage}
-        onChange={e => setName(e.target.value)}
+        value={namenewimage || ''}
+        onChange={event => setName(event.target.value)}
       />
       <span id="error-namenewimage" className="popup__error-message"/>
       <input
@@ -44,8 +44,8 @@ export default function AddPlacePopup({ isOpen, onClose, onAddPlace }) {
         placeholder="Ссылка на картинку"
         autoComplete="off"
         required=""
-        value={linknewimage}
-        onChange={e => setLink(e.target.value)}
+        value={linknewimage || ''}
+        onChange={event => setLink(event.target.value)}
       />
      <span id="error-linknewimage" className="popup__error-message" />
     </PopupWithForm>

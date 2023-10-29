@@ -7,7 +7,7 @@ class Api {
     this._userUrl = `${this._url}/users/me`;
     this._cards = `${this._url}/cards`;
     this._likesUrl = `${this._url}/cards/likes`;
-  };
+  }; 
 
   _getResponse(res) {
     if (res.ok) {

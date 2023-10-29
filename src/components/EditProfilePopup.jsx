@@ -40,8 +40,8 @@ export default function EditProfilePopup({ isOpen, onClose, onUpdateUser }) {
           autoComplete="off"
           minLength={2}
           maxLength={40}
-          value={name}
-          onChange={e => setName(e.target.value)}
+          value={name  || ''}
+          onChange={event => setName(event.target.value)}
           required=""
         />
         <span id="error-nameProfile" className="popup__error-message"></span>
@@ -53,8 +53,8 @@ export default function EditProfilePopup({ isOpen, onClose, onUpdateUser }) {
           minLength={2}
           maxLength={200}
           placeholder='О себе'
-          value={description}
-          onChange={e => setDescription(e.target.value)}
+          value={description  || ''}
+          onChange={event => setDescription(event.target.value)}
           required=""
         />
         <span id="error-aboutProfile" className="popup__error-message" />
