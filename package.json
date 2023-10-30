@@ -1,9 +1,9 @@
 {
+  "homepage": "https://ratioglobus.github.io/",
   "name": "mesto-react",
   "private": false,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "ratioglobus",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

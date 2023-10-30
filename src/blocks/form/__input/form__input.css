@@ -1,14 +1,17 @@
 .form__input {
-    margin: 0 auto 30px;
     padding: 0 0 9px;
     width: 100%;
-    color: white;
-    background-color: transparent;
-    font-style: normal;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: normal;
-    border-bottom: 2px solid rgba(204, 204, 204, 1);
-    outline-color: rgba(0, 0, 0, 0.2);
+    margin: 0 auto 30px;
+    background-color: initial;
     border: none;
+    border-bottom: 2px solid #ccc;
+    font-size: 14px;
+    font-weight: 500;
+    outline-color: rgba(0,0,0,.2);
+}
+
+.form__input, .form__title {
+    color: #fff;
+    font-style: normal;
+    line-height: normal;
 }
